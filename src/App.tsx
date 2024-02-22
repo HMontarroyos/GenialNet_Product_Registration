@@ -1,7 +1,13 @@
-import Button from "@mui/material/Button";
+import Routes from "./routes";
+import { ThemeProvider } from "styled-components";
+import { Theme, ThemeType } from "../src/styles/Theme";
 
-function App() {
-  return <Button variant="contained">Hello world</Button>;
+function App(): JSX.Element {
+  return (
+    <ThemeProvider theme={Theme as ThemeType}>
+      <Routes />
+    </ThemeProvider>
+  );
 }
 
 export default App;
