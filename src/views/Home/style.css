@@ -1,0 +1,21 @@
+.custom-toast {
+  font-family: "Montserrat, sans-serif";
+  font-weight: 300;
+  background-color: #007ebc;
+  color: #ffffff;
+}
+
+.Toastify__progress-bar {
+  background-color: #092d67;
+  height: 5px;
+  border-radius: 5px;
+}
+
+.Toastify__close-button {
+  color: #092d67;
+  font-size: 20px;
+}
+
+.Toastify__toast-body svg {
+  fill: #092d67;
+}
