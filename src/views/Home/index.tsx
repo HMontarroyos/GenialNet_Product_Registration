@@ -86,7 +86,7 @@ function Home() {
   const handleInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     let formattedValue = value;
-    
+
     if (name === "cnpj") {
       if (value.length <= 18) {
         formattedValue = value
@@ -99,7 +99,7 @@ function Home() {
         formattedValue = value.substring(0, 18);
       }
     }
-    
+
     if (name === "cep") {
       formattedValue = value.replace(/\D/g, "");
       formattedValue = formattedValue.substring(0, 8);
@@ -107,25 +107,30 @@ function Home() {
         formattedValue = formattedValue.replace(/^(\d{5})(\d{3})$/, "$1-$2");
       }
     }
-    
+
     if (name === "tel") {
       formattedValue = value.replace(/\D/g, "");
       if (/^(\d{2})(\d)/.test(formattedValue)) {
-        if (formattedValue.length > 10 && formattedValue.startsWith("9")) {
+        if (formattedValue.length > 10 && formattedValue[2] === "9") {
           formattedValue = formattedValue.replace(
-            /^(\d{2})(\d{5})(\d{4})$/,
+            /^(\d{2})(\d{5})(\d{4}).*/,
             "($1) $2-$3"
           );
           formattedValue = formattedValue.substring(0, 15);
         } else {
           formattedValue = formattedValue.replace(
-            /^(\d{2})(\d{4})(\d{4})$/,
+            /^(\d{2})(\d{4})(\d{4}).*/,
             "($1) $2-$3"
           );
         }
       }
     }
-    
+
+    setErrors({
+      ...errors,
+      [name]: "",
+    });
+
     if (content === "produto") {
       setProductData({
         ...productData,
@@ -137,17 +142,11 @@ function Home() {
         [name]: formattedValue,
       });
     }
-    
-    setErrors({
-      ...errors,
-      [name]: "",
-    });
 
-    
     if (name === "cep" && formattedValue.length === 9) {
       try {
-        const cepData = await getCep(formattedValue); 
-        console.log("CEP", cepData)
+        const cepData = await getCep(formattedValue);
+        console.log("CEP", cepData);
         if (cepData) {
           if (content === "produto") {
           } else {
@@ -171,7 +170,6 @@ function Home() {
       }
     }
   };
-  
 
   const handleSaveSupplier = () => {
     const hasErrors = validateFields();
