@@ -29,14 +29,58 @@ export const Alert = styled.p`
   letter-spacing: 0px;
 `;
 
-
-
-
 export const Title = styled.h1`
-  margin-top: 10px;
+  margin-top: 50px;
+  margin-bottom: 30px;
   font-family: ${(props) => props.theme.fonts.title};
   font-size: 30px;
   color: ${(props) => props.theme.colors.primary};
   line-height: 20px;
   font-weight: 600;
+`;
+
+export const ContainerSupplier = styled.div`
+  margin: 20px;
+  border: 2px solid ${(props) => props.theme.colors.secondary};
+  padding: 50px;
+  border-radius: 20px;
+`;
+
+export const ContainerTypography = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+`;
+
+export const Typography = styled.p`
+  color: ${(props) => props.theme.colors.primary};
+  font-family: ${(props) => props.theme.fonts.text};
+  font-weight: bold;
+`;
+
+export const ContainerProductsList = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: rgba(0, 126, 188, 0.3);
+`;
+
+export const ContainerClickRemove = styled.div`
+  cursor: pointer;
+  color: ${(props) => props.theme.colors.primary};
+  &:hover {
+    color: ${(props) => props.theme.colors.secondary};
+  }
+`;
+
+export const TypographyProduct = styled.p`
+  color: ${(props) => props.theme.colors.primary};
+  font-family: ${(props) => props.theme.fonts.text};
+  font-weight: bold;
+  font-size: 20px;
 `;
