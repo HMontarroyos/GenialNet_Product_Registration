@@ -10,7 +10,6 @@ type Colors = {
 type Fonts = {
   title: string;
   text: string;
-  subtitle: string;
 };
 
 type FontSizes = {
@@ -44,9 +43,9 @@ export const Theme: ThemeType = {
     dark: "#D4D7E1",
   },
   fonts: {
-    title: "Oswald ,sans-serif",
-    text: "Inter,sans-serif",
-    subtitle: "Caveat,cursive",
+    title: "Montserrat, sans-serif",
+    text: "Open Sans sans-serif"
+
   },
   fontSizes: {
     small: "14px",
