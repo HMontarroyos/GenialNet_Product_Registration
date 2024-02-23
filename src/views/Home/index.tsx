@@ -1,11 +1,14 @@
 import React, { useState, ChangeEvent, useEffect } from "react";
 import { Button, Menu } from "../../components";
 import * as S from "./styled";
+import "./style.css";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { getCep } from "../../server/api";
+import { toast } from "react-toastify";
 
 interface Supplier {
   name: string;
@@ -15,6 +18,14 @@ interface Supplier {
   address: string;
   city: string;
   state: string;
+  products: any;
+}
+
+interface Product {
+  description: string;
+  brand: string;
+  unitOfMeasurement: string;
+  image: string;
 }
 
 function Home() {
@@ -28,25 +39,43 @@ function Home() {
     address: "",
     city: "",
     state: "",
+    products: [],
+  });
+  const [productData, setProductData] = useState<Product>({
+    description: "",
+    brand: "",
+    unitOfMeasurement: "",
+    image: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     cnpj: "",
     cep: "",
     tel: "",
+    price: "",
+    description: "",
   });
   const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
+  const [productsList, setProductsList] = useState<Product[]>([]);
 
   useEffect(() => {
     const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
+    const products = JSON.parse(localStorage.getItem("products") || "[]");
     setSuppliersList(suppliers);
+    setProductsList(products);
   }, []);
 
   const handleItemClick = (item: string) => {
     setContent(item);
   };
 
-  const handleOpenModal = () => {
+  const handleOpenModalProduct = () => {
+    setContent("produto");
+    setOpenModal(true);
+  };
+
+  const handleOpenModalSupplier = () => {
+    setContent("fornecedor");
     setOpenModal(true);
   };
 
@@ -71,10 +100,17 @@ function Home() {
       }
     }
 
-    setSupplierData({
-      ...supplierData,
-      [name]: formattedValue,
-    });
+    if (content === "produto") {
+      setProductData({
+        ...productData,
+        [name]: formattedValue,
+      });
+    } else {
+      setSupplierData({
+        ...supplierData,
+        [name]: formattedValue,
+      });
+    }
 
     setErrors({
       ...errors,
@@ -85,12 +121,15 @@ function Home() {
       try {
         const cepData = await getCep(value);
         if (cepData) {
-          setSupplierData({
-            ...supplierData,
-            address: `${cepData.logradouro} ${cepData.complemento} ${cepData.bairro}`,
-            city: cepData.localidade,
-            state: cepData.uf,
-          });
+          if (content === "produto") {
+          } else {
+            setSupplierData({
+              ...supplierData,
+              address: `${cepData.logradouro} ${cepData.complemento} ${cepData.bairro}`,
+              city: cepData.localidade,
+              state: cepData.uf,
+            });
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar o CEP:", error);
@@ -108,13 +147,9 @@ function Home() {
     const hasErrors = validateFields();
     if (!hasErrors) {
       const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
-      const supplierWithProducts = {
-        ...supplierData,
-        products: [] 
-      };
-      suppliers.push(supplierWithProducts);
+      suppliers.push(supplierData);
       localStorage.setItem("suppliers", JSON.stringify(suppliers));
-      setSuppliersList([...suppliersList, supplierWithProducts]);
+      setSuppliersList([...suppliersList, supplierData]);
       setSupplierData({
         name: "",
         cnpj: "",
@@ -123,10 +158,16 @@ function Home() {
         address: "",
         city: "",
         state: "",
+        products: [],
+      });
+      toast.success("Fornecedor cadastrado com sucesso", {
+        className: "custom-toast",
       });
       handleCloseModal();
     }
   };
+
+  const handleSaveProduct = () => {};
 
   const validateFields = () => {
     let hasErrors = false;
@@ -135,26 +176,45 @@ function Home() {
       cnpj: "CNPJ",
       cep: "CEP",
       tel: "Telefone",
+      price: "Preço",
+      description: "Descrição",
     };
     const newErrors: {
       name: string;
       cnpj: string;
       cep: string;
       tel: string;
-    } = { 
+      price: string;
+      description: string;
+    } = {
       name: "",
       cnpj: "",
       cep: "",
-      tel: ""
+      tel: "",
+      price: "",
+      description: "",
     };
-  
-    Object.entries(supplierData).forEach(([key, value]) => {
-      if (!value) {
-        newErrors[key as keyof typeof newErrors] = `${fieldTitles[key as keyof typeof fieldTitles]} é obrigatório`;
-        hasErrors = true;
-      }
-    });
-  
+
+    if (content === "produto") {
+      Object.entries(productData).forEach(([key, value]) => {
+        if (!value) {
+          newErrors[key as keyof typeof newErrors] = `${
+            fieldTitles[key as keyof typeof fieldTitles]
+          } é obrigatório`;
+          hasErrors = true;
+        }
+      });
+    } else {
+      Object.entries(supplierData).forEach(([key, value]) => {
+        if (!value) {
+          newErrors[key as keyof typeof newErrors] = `${
+            fieldTitles[key as keyof typeof fieldTitles]
+          } é obrigatório`;
+          hasErrors = true;
+        }
+      });
+    }
+
     setErrors(newErrors);
     return hasErrors;
   };
@@ -167,8 +227,8 @@ function Home() {
           <Button
             onClick={
               content === "produto"
-                ? () => console.log("TESTE")
-                : handleOpenModal
+                ? handleOpenModalProduct
+                : handleOpenModalSupplier
             }
             text={`Cadastrar ${
               content === "produto" ? "Produtos" : "Fornecedor"
@@ -189,22 +249,77 @@ function Home() {
         </>
         {content === "fornecedor" && (
           <>
-          <S.Title>Fornecedores</S.Title>
-          {suppliersList.map((supplier, index) => (
-          <div key={index}>
-            <Typography variant="h6">{supplier.name}</Typography>
-            <Typography>CNPJ: {supplier.cnpj}</Typography>
-            <Typography>CEP: {supplier.cep}</Typography>
-            <Typography>Telefone: {supplier.tel}</Typography>
-            <Typography>Endereço: {supplier.address}</Typography>
-            <Typography>Cidade: {supplier.city}</Typography>
-            <Typography>Estado: {supplier.state}</Typography>
-            
-          </div>
-        ))}
+            <S.Title>Fornecedores</S.Title>
+            {suppliersList.map((supplier, index) => (
+              <S.ContainerSupplier key={index}>
+                <Typography
+                  variant="h4"
+                  color={"#092d67"}
+                  sx={{
+                    marginBottom: "10px",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {supplier.name}
+                </Typography>
+                <S.ContainerTypography>
+                  <S.Typography>CNPJ:</S.Typography>
+                  <Typography color={"#092d67"}> {supplier.cnpj}</Typography>
+                </S.ContainerTypography>
+                <S.ContainerTypography>
+                  <S.Typography>CEP: </S.Typography>
+                  <Typography color={"#092d67"}> {supplier.cep}</Typography>
+                </S.ContainerTypography>
+                <S.ContainerTypography>
+                  <S.Typography>Endereço: </S.Typography>
+                  <Typography color={"#092d67"}> {supplier.address}</Typography>
+                </S.ContainerTypography>
+                <S.ContainerTypography>
+                  <S.Typography>Cidade:</S.Typography>
+                  <Typography color={"#092d67"}> {supplier.city}</Typography>
+                </S.ContainerTypography>
+                <S.ContainerTypography>
+                  <S.Typography>Estado:</S.Typography>
+                  <Typography color={"#092d67"}> {supplier.state}</Typography>
+                </S.ContainerTypography>
+                <S.ContainerTypography>
+                  <S.Typography>Telefone:</S.Typography>
+                  <Typography color={"#092d67"}> {supplier.tel}</Typography>
+                </S.ContainerTypography>
+
+                <Typography
+                  variant="h6"
+                  color={"#092d67"}
+                  sx={{
+                    marginBottom: "10px",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Produtos:
+                </Typography>
+                {supplier.products.length > 0 ? (
+                  supplier.products.map((product: any, index: any) => (
+                    <S.ContainerProductsList
+                      onClick={() => console.log("EXCLUIR")}
+                    >
+                      <S.TypographyProduct>Banana</S.TypographyProduct>
+                      <S.ContainerClickRemove>
+                        <DeleteForeverIcon />
+                      </S.ContainerClickRemove>
+                    </S.ContainerProductsList>
+                  ))
+                ) : (
+                  <S.Alert>
+                    Não existe produtos cadastrado para esse fornecedor, caso
+                    deseje cadastre na página de produtos
+                  </S.Alert>
+                )}
+              </S.ContainerSupplier>
+            ))}
           </>
         )}
-        
       </S.Container>
       <Modal
         open={openModal}
@@ -219,90 +334,119 @@ function Home() {
       >
         <Box sx={{ width: 300, bgcolor: "background.paper", p: 2 }}>
           <Typography id="modal-title" variant="h6" component="h2">
-            Cadastro de Fornecedor
+            {content === "produto"
+              ? "Cadastro de Produto"
+              : "Cadastro de Fornecedor"}
           </Typography>
-          <TextField
-            id="name"
-            name="name"
-            label="Nome"
-            variant="outlined"
-            value={supplierData.name}
-            onChange={handleInputChange}
-            fullWidth
-            sx={{ mt: 2 }}
-            error={!!errors.name}
-            helperText={errors.name}
-          />
-          <TextField
-            id="cnpj"
-            name="cnpj"
-            label="CNPJ"
-            variant="outlined"
-            value={supplierData.cnpj}
-            onChange={handleInputChange}
-            fullWidth
-            sx={{ mt: 2 }}
-            error={!!errors.cnpj}
-            helperText={errors.cnpj}
-          />
-          <TextField
-            id="cep"
-            name="cep"
-            label="CEP"
-            variant="outlined"
-            value={supplierData.cep}
-            onChange={handleInputChange}
-            fullWidth
-            sx={{ mt: 2 }}
-            error={!!errors.cep}
-            helperText={errors.cep}
-          />
-          <TextField
-            id="address"
-            name="address"
-            label="Endereço"
-            variant="outlined"
-            value={supplierData.address}
-            onChange={handleInputChange}
-            disabled={true}
-            fullWidth
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            id="city"
-            name="city"
-            label="Cidade"
-            variant="outlined"
-            value={supplierData.city}
-            onChange={handleInputChange}
-            disabled={true}
-            fullWidth
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            id="state"
-            name="state"
-            label="Estado"
-            variant="outlined"
-            value={supplierData.state}
-            onChange={handleInputChange}
-            disabled={true}
-            fullWidth
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            id="tel"
-            name="tel"
-            label="Telefone"
-            variant="outlined"
-            value={supplierData.tel}
-            onChange={handleInputChange}
-            fullWidth
-            sx={{ mt: 2 }}
-            error={!!errors.tel}
-            helperText={errors.tel}
-          />
-          <Button onClick={handleSaveSupplier} text={"Salvar"} />
+          {content === "produto" && (
+            <>
+              <TextField
+                id="description"
+                name="description"
+                label="Nome do Produto"
+                variant="outlined"
+                value={productData.description}
+                onChange={handleInputChange}
+                fullWidth
+                sx={{ mt: 2 }}
+                error={!!errors.description}
+                helperText={errors.description}
+              />
+
+              <Button onClick={handleSaveProduct} text={"Salvar Produto"} />
+            </>
+          )}
+          {content === "fornecedor" && (
+            <>
+              <TextField
+                id="name"
+                name="name"
+                label="Nome"
+                variant="outlined"
+                value={supplierData.name}
+                onChange={handleInputChange}
+                fullWidth
+                sx={{ mt: 2 }}
+                error={!!errors.name}
+                helperText={errors.name}
+              />
+              <TextField
+                id="cnpj"
+                name="cnpj"
+                label="CNPJ"
+                variant="outlined"
+                value={supplierData.cnpj}
+                onChange={handleInputChange}
+                fullWidth
+                sx={{ mt: 2 }}
+                error={!!errors.cnpj}
+                helperText={errors.cnpj}
+              />
+              <TextField
+                id="cep"
+                name="cep"
+                label="CEP"
+                variant="outlined"
+                value={supplierData.cep}
+                onChange={handleInputChange}
+                fullWidth
+                sx={{ mt: 2 }}
+                error={!!errors.cep}
+                helperText={errors.cep}
+              />
+              {supplierData.cep.length > 0 && (
+                <>
+                  <TextField
+                    id="address"
+                    name="address"
+                    label="Endereço"
+                    variant="outlined"
+                    value={supplierData.address}
+                    onChange={handleInputChange}
+                    disabled={true}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  />
+                  <TextField
+                    id="city"
+                    name="city"
+                    label="Cidade"
+                    variant="outlined"
+                    value={supplierData.city}
+                    onChange={handleInputChange}
+                    disabled={true}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  />
+                  <TextField
+                    id="state"
+                    name="state"
+                    label="Estado"
+                    variant="outlined"
+                    value={supplierData.state}
+                    onChange={handleInputChange}
+                    disabled={true}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  />
+                </>
+              )}
+
+              <TextField
+                id="tel"
+                name="tel"
+                label="Telefone"
+                variant="outlined"
+                value={supplierData.tel}
+                onChange={handleInputChange}
+                fullWidth
+                sx={{ mt: 2 }}
+                error={!!errors.tel}
+                helperText={errors.tel}
+              />
+              <Button onClick={handleSaveSupplier} text={"Salvar Fornecedor"} />
+            </>
+          )}
         </Box>
       </Modal>
     </>
