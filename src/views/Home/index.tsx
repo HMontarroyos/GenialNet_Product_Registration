@@ -86,7 +86,7 @@ function Home() {
   const handleInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     let formattedValue = value;
-
+    
     if (name === "cnpj") {
       if (value.length <= 18) {
         formattedValue = value
@@ -99,7 +99,33 @@ function Home() {
         formattedValue = value.substring(0, 18);
       }
     }
-
+    
+    if (name === "cep") {
+      formattedValue = value.replace(/\D/g, "");
+      formattedValue = formattedValue.substring(0, 8);
+      if (formattedValue.length === 8) {
+        formattedValue = formattedValue.replace(/^(\d{5})(\d{3})$/, "$1-$2");
+      }
+    }
+    
+    if (name === "tel") {
+      formattedValue = value.replace(/\D/g, "");
+      if (/^(\d{2})(\d)/.test(formattedValue)) {
+        if (formattedValue.length > 10 && formattedValue.startsWith("9")) {
+          formattedValue = formattedValue.replace(
+            /^(\d{2})(\d{5})(\d{4})$/,
+            "($1) $2-$3"
+          );
+          formattedValue = formattedValue.substring(0, 15);
+        } else {
+          formattedValue = formattedValue.replace(
+            /^(\d{2})(\d{4})(\d{4})$/,
+            "($1) $2-$3"
+          );
+        }
+      }
+    }
+    
     if (content === "produto") {
       setProductData({
         ...productData,
@@ -111,20 +137,23 @@ function Home() {
         [name]: formattedValue,
       });
     }
-
+    
     setErrors({
       ...errors,
       [name]: "",
     });
 
-    if (name === "cep" && value.length === 8) {
+    
+    if (name === "cep" && formattedValue.length === 9) {
       try {
-        const cepData = await getCep(value);
+        const cepData = await getCep(formattedValue); 
+        console.log("CEP", cepData)
         if (cepData) {
           if (content === "produto") {
           } else {
             setSupplierData({
               ...supplierData,
+              cep: formattedValue,
               address: `${cepData.logradouro} ${cepData.complemento} ${cepData.bairro}`,
               city: cepData.localidade,
               state: cepData.uf,
@@ -142,28 +171,43 @@ function Home() {
       }
     }
   };
+  
 
   const handleSaveSupplier = () => {
     const hasErrors = validateFields();
     if (!hasErrors) {
-      const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
-      suppliers.push(supplierData);
-      localStorage.setItem("suppliers", JSON.stringify(suppliers));
-      setSuppliersList([...suppliersList, supplierData]);
-      setSupplierData({
-        name: "",
-        cnpj: "",
-        cep: "",
-        tel: "",
-        address: "",
-        city: "",
-        state: "",
-        products: [],
-      });
-      toast.success("Fornecedor cadastrado com sucesso", {
-        className: "custom-toast",
-      });
-      handleCloseModal();
+      const exists = suppliersList.some(
+        (supplier) =>
+          supplier.name === supplierData.name ||
+          supplier.cnpj === supplierData.cnpj
+      );
+      if (exists) {
+        toast.error(
+          "Já existe um fornecedor com esse nome ou CNPJ cadastrado",
+          {
+            className: "custom-toast-error",
+          }
+        );
+      } else {
+        const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
+        suppliers.push(supplierData);
+        localStorage.setItem("suppliers", JSON.stringify(suppliers));
+        setSuppliersList([...suppliersList, supplierData]);
+        setSupplierData({
+          name: "",
+          cnpj: "",
+          cep: "",
+          tel: "",
+          address: "",
+          city: "",
+          state: "",
+          products: [],
+        });
+        toast.success("Fornecedor cadastrado com sucesso", {
+          className: "custom-toast",
+        });
+        handleCloseModal();
+      }
     }
   };
 
