@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useEffect } from "react";
 import { Button, Menu } from "../../components";
 import * as S from "./styled";
 import Modal from "@mui/material/Modal";
@@ -7,10 +7,20 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import { getCep } from "../../server/api";
 
+interface Supplier {
+  name: string;
+  cnpj: string;
+  cep: string;
+  tel: string;
+  address: string;
+  city: string;
+  state: string;
+}
+
 function Home() {
   const [content, setContent] = useState("produto");
   const [openModal, setOpenModal] = useState(false);
-  const [supplierData, setSupplierData] = useState({
+  const [supplierData, setSupplierData] = useState<Supplier>({
     name: "",
     cnpj: "",
     cep: "",
@@ -19,6 +29,18 @@ function Home() {
     city: "",
     state: "",
   });
+  const [errors, setErrors] = useState({
+    name: "",
+    cnpj: "",
+    cep: "",
+    tel: "",
+  });
+  const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
+    setSuppliersList(suppliers);
+  }, []);
 
   const handleItemClick = (item: string) => {
     setContent(item);
@@ -54,6 +76,11 @@ function Home() {
       [name]: formattedValue,
     });
 
+    setErrors({
+      ...errors,
+      [name]: "",
+    });
+
     if (name === "cep" && value.length === 8) {
       try {
         const cepData = await getCep(value);
@@ -78,19 +105,58 @@ function Home() {
   };
 
   const handleSaveSupplier = () => {
-    const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
-    suppliers.push(supplierData);
-    localStorage.setItem("suppliers", JSON.stringify(suppliers));
-    setSupplierData({
+    const hasErrors = validateFields();
+    if (!hasErrors) {
+      const suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
+      const supplierWithProducts = {
+        ...supplierData,
+        products: [] 
+      };
+      suppliers.push(supplierWithProducts);
+      localStorage.setItem("suppliers", JSON.stringify(suppliers));
+      setSuppliersList([...suppliersList, supplierWithProducts]);
+      setSupplierData({
+        name: "",
+        cnpj: "",
+        cep: "",
+        tel: "",
+        address: "",
+        city: "",
+        state: "",
+      });
+      handleCloseModal();
+    }
+  };
+
+  const validateFields = () => {
+    let hasErrors = false;
+    const fieldTitles = {
+      name: "Nome",
+      cnpj: "CNPJ",
+      cep: "CEP",
+      tel: "Telefone",
+    };
+    const newErrors: {
+      name: string;
+      cnpj: string;
+      cep: string;
+      tel: string;
+    } = { 
       name: "",
       cnpj: "",
       cep: "",
-      tel: "",
-      address: "",
-      city: "",
-      state: "",
+      tel: ""
+    };
+  
+    Object.entries(supplierData).forEach(([key, value]) => {
+      if (!value) {
+        newErrors[key as keyof typeof newErrors] = `${fieldTitles[key as keyof typeof fieldTitles]} é obrigatório`;
+        hasErrors = true;
+      }
     });
-    handleCloseModal();
+  
+    setErrors(newErrors);
+    return hasErrors;
   };
 
   return (
@@ -121,7 +187,24 @@ function Home() {
             </>
           )}
         </>
-        {/* {content === "fornecedor" && <S.Title>Fornecedor</S.Title>} */}
+        {content === "fornecedor" && (
+          <>
+          <S.Title>Fornecedores</S.Title>
+          {suppliersList.map((supplier, index) => (
+          <div key={index}>
+            <Typography variant="h6">{supplier.name}</Typography>
+            <Typography>CNPJ: {supplier.cnpj}</Typography>
+            <Typography>CEP: {supplier.cep}</Typography>
+            <Typography>Telefone: {supplier.tel}</Typography>
+            <Typography>Endereço: {supplier.address}</Typography>
+            <Typography>Cidade: {supplier.city}</Typography>
+            <Typography>Estado: {supplier.state}</Typography>
+            
+          </div>
+        ))}
+          </>
+        )}
+        
       </S.Container>
       <Modal
         open={openModal}
@@ -147,6 +230,8 @@ function Home() {
             onChange={handleInputChange}
             fullWidth
             sx={{ mt: 2 }}
+            error={!!errors.name}
+            helperText={errors.name}
           />
           <TextField
             id="cnpj"
@@ -155,9 +240,10 @@ function Home() {
             variant="outlined"
             value={supplierData.cnpj}
             onChange={handleInputChange}
-            /* onBlur={handleInputChange} */
             fullWidth
             sx={{ mt: 2 }}
+            error={!!errors.cnpj}
+            helperText={errors.cnpj}
           />
           <TextField
             id="cep"
@@ -168,6 +254,8 @@ function Home() {
             onChange={handleInputChange}
             fullWidth
             sx={{ mt: 2 }}
+            error={!!errors.cep}
+            helperText={errors.cep}
           />
           <TextField
             id="address"
@@ -211,6 +299,8 @@ function Home() {
             onChange={handleInputChange}
             fullWidth
             sx={{ mt: 2 }}
+            error={!!errors.tel}
+            helperText={errors.tel}
           />
           <Button onClick={handleSaveSupplier} text={"Salvar"} />
         </Box>
