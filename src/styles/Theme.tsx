@@ -5,6 +5,7 @@ type Colors = {
   quartenary: string;
   text: string;
   dark: string;
+  disabled: string;
 };
 
 type Fonts = {
@@ -41,6 +42,7 @@ export const Theme: ThemeType = {
     quartenary: "##00A6AE",
     text: "#ffffff",
     dark: "#D4D7E1",
+    disabled: "#4b4e6a"
   },
   fonts: {
     title: "Montserrat, sans-serif",
