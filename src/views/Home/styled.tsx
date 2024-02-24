@@ -70,6 +70,12 @@ export const ContainerProductsList = styled.div`
   background-color: rgba(0, 126, 188, 0.3);
 `;
 
+
+
+
+
+
+
 export const ContainerClickRemove = styled.div`
   cursor: pointer;
   color: ${(props) => props.theme.colors.primary};

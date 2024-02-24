@@ -9,7 +9,18 @@ import TextField from "@mui/material/TextField";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { getCep } from "../../server/api";
 import { toast } from "react-toastify";
-import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  FormControl,
+  Grid,
+  Input,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 
 interface Supplier {
   name: string;
@@ -33,6 +44,7 @@ interface Product {
 function Home() {
   const [content, setContent] = useState("produto");
   const [openModal, setOpenModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [supplierData, setSupplierData] = useState<Supplier>({
     name: "",
     cnpj: "",
@@ -252,7 +264,24 @@ function Home() {
       image: "",
       supplier: "",
     });
+    setSelectedImage(null);
     handleCloseModal();
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files && event.target.files[0];
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProductData({
+        ...productData,
+        image: reader.result as string,
+      });
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
   };
 
   const validateFields = () => {
@@ -343,14 +372,112 @@ function Home() {
           />
           {content === "produto" && (
             <>
-              <S.Paragraph>
-                Você ainda não tem produtos cadastrados ;(
-              </S.Paragraph>
-              {!localStorage.getItem("suppliers") && (
-                <S.Alert>
-                  Para cadastrar algum produto, você deve primeiro criar um
-                  fornecedor
-                </S.Alert>
+              {localStorage.getItem("products") ? (
+                JSON.parse(localStorage.getItem("products") || "[]").length >
+                0 ? (
+                  <>
+                    <S.Title>Produtos</S.Title>
+                    {Object.entries(
+                      productsList.reduce((acc: any, product: any) => {
+                        if (!acc[product.supplier]) {
+                          acc[product.supplier] = [];
+                        }
+                        acc[product.supplier].push(product);
+                        return acc;
+                      }, {})
+                    ).map(([supplier, products]: any) => (
+                      <>
+                        <Typography
+                          variant="h4"
+                          color={"#092d67"}
+                          sx={{
+                            marginBottom: "30px",
+                            marginTop: "30px",
+                            fontFamily: "Montserrat, sans-serif",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Produtos do Fornecedor {supplier}
+                        </Typography>
+                        <Grid container spacing={2}>
+                          {products.map((product: any, index: any) => (
+                            <Grid
+                              item
+                              key={index}
+                              xs={12}
+                              sm={6}
+                              md={4}
+                              lg={3}
+                              sx={{ padding: 2 }}
+                            >
+                              <Card sx={{ maxWidth: 300 }}>
+                                <CardMedia
+                                  sx={{ height: 140 }}
+                                  image={product.image}
+                                  title={product.description}
+                                />
+                                <CardContent>
+                                  <Typography
+                                    gutterBottom
+                                    variant="h5"
+                                    component="div"
+                                    color={"#092d67"}
+                                  >
+                                    {product.description}
+                                  </Typography>
+                                  <S.ContainerTypography>
+                                    <S.Typography>Marca:</S.Typography>
+                                    <Typography color={"#092d67"}>
+                                      {product.brand}
+                                    </Typography>
+                                  </S.ContainerTypography>
+                                  <S.ContainerTypography>
+                                    <S.Typography>Fornecedor:</S.Typography>
+                                    <Typography color={"#092d67"}>
+                                      {product.supplier}
+                                    </Typography>
+                                  </S.ContainerTypography>
+                                  <S.ContainerTypography>
+                                    <S.Typography>
+                                      Unidade de Medida:
+                                    </S.Typography>
+                                    <Typography color={"#092d67"}>
+                                      {product.unitOfMeasurement}
+                                    </Typography>
+                                  </S.ContainerTypography>
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <S.Paragraph>
+                      Você ainda não tem produtos cadastrados ;(
+                    </S.Paragraph>
+                    {!localStorage.getItem("suppliers") && (
+                      <S.Alert>
+                        Para cadastrar algum produto, você deve primeiro criar
+                        um fornecedor
+                      </S.Alert>
+                    )}
+                  </>
+                )
+              ) : (
+                <>
+                  <S.Paragraph>
+                    Você ainda não tem produtos cadastrados ;(
+                  </S.Paragraph>
+                  {!localStorage.getItem("suppliers") && (
+                    <S.Alert>
+                      Para cadastrar algum produto, você deve primeiro criar um
+                      fornecedor
+                    </S.Alert>
+                  )}
+                </>
               )}
             </>
           )}
@@ -358,93 +485,107 @@ function Home() {
         {content === "fornecedor" && (
           <>
             {localStorage.getItem("suppliers") ? (
-              <>
-                <S.Title>Fornecedores</S.Title>
-                {suppliersList.map((supplier, index) => (
-                  <S.ContainerSupplier key={index}>
-                    <Typography
-                      variant="h4"
-                      color={"#092d67"}
-                      sx={{
-                        marginBottom: "10px",
-                        fontFamily: "Montserrat, sans-serif",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {supplier.name}
-                    </Typography>
-                    <S.ContainerTypography>
-                      <S.Typography>CNPJ:</S.Typography>
-                      <Typography color={"#092d67"}>
-                        {" "}
-                        {supplier.cnpj}
+              JSON.parse(localStorage.getItem("suppliers") || "[]").length >
+              0 ? (
+                <>
+                  <S.Title>Fornecedores</S.Title>
+                  {suppliersList.map((supplier, index) => (
+                    <S.ContainerSupplier key={index}>
+                      <Typography
+                        variant="h4"
+                        color={"#092d67"}
+                        sx={{
+                          marginBottom: "10px",
+                          fontFamily: "Montserrat, sans-serif",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {supplier.name}
                       </Typography>
-                    </S.ContainerTypography>
-                    <S.ContainerTypography>
-                      <S.Typography>CEP: </S.Typography>
-                      <Typography color={"#092d67"}> {supplier.cep}</Typography>
-                    </S.ContainerTypography>
-                    <S.ContainerTypography>
-                      <S.Typography>Endereço: </S.Typography>
-                      <Typography color={"#092d67"}>
-                        {" "}
-                        {supplier.address}
-                      </Typography>
-                    </S.ContainerTypography>
-                    <S.ContainerTypography>
-                      <S.Typography>Cidade:</S.Typography>
-                      <Typography color={"#092d67"}>
-                        {" "}
-                        {supplier.city}
-                      </Typography>
-                    </S.ContainerTypography>
-                    <S.ContainerTypography>
-                      <S.Typography>Estado:</S.Typography>
-                      <Typography color={"#092d67"}>
-                        {" "}
-                        {supplier.state}
-                      </Typography>
-                    </S.ContainerTypography>
-                    <S.ContainerTypography>
-                      <S.Typography>Telefone:</S.Typography>
-                      <Typography color={"#092d67"}> {supplier.tel}</Typography>
-                    </S.ContainerTypography>
+                      <S.ContainerTypography>
+                        <S.Typography>CNPJ:</S.Typography>
+                        <Typography color={"#092d67"}>
+                          {" "}
+                          {supplier.cnpj}
+                        </Typography>
+                      </S.ContainerTypography>
+                      <S.ContainerTypography>
+                        <S.Typography>CEP: </S.Typography>
+                        <Typography color={"#092d67"}>
+                          {" "}
+                          {supplier.cep}
+                        </Typography>
+                      </S.ContainerTypography>
+                      <S.ContainerTypography>
+                        <S.Typography>Endereço: </S.Typography>
+                        <Typography color={"#092d67"}>
+                          {" "}
+                          {supplier.address}
+                        </Typography>
+                      </S.ContainerTypography>
+                      <S.ContainerTypography>
+                        <S.Typography>Cidade:</S.Typography>
+                        <Typography color={"#092d67"}>
+                          {" "}
+                          {supplier.city}
+                        </Typography>
+                      </S.ContainerTypography>
+                      <S.ContainerTypography>
+                        <S.Typography>Estado:</S.Typography>
+                        <Typography color={"#092d67"}>
+                          {" "}
+                          {supplier.state}
+                        </Typography>
+                      </S.ContainerTypography>
+                      <S.ContainerTypography>
+                        <S.Typography>Telefone:</S.Typography>
+                        <Typography color={"#092d67"}>
+                          {" "}
+                          {supplier.tel}
+                        </Typography>
+                      </S.ContainerTypography>
 
-                    <Typography
-                      variant="h6"
-                      color={"#092d67"}
-                      sx={{
-                        marginBottom: "10px",
-                        fontFamily: "Montserrat, sans-serif",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Produtos:
-                    </Typography>
-                    {supplier.products.length > 0 ? (
-                      supplier.products.map((product: any, index: any) => (
-                        <S.ContainerProductsList
-                          onClick={() =>
-                            handleRemoveProduct(supplier.name, index)
-                          }
-                          key={index}
-                        >
-                          <S.TypographyProduct>
-                            {product.description}
-                          </S.TypographyProduct>
-                          <S.ContainerClickRemove>
-                            <DeleteForeverIcon />
-                          </S.ContainerClickRemove>
-                        </S.ContainerProductsList>
-                      ))
-                    ) : (
-                      <S.Alert>
-                        Não existem produtos cadastrados para esse fornecedor.
-                      </S.Alert>
-                    )}
-                  </S.ContainerSupplier>
-                ))}
-              </>
+                      <Typography
+                        variant="h6"
+                        color={"#092d67"}
+                        sx={{
+                          marginBottom: "10px",
+                          fontFamily: "Montserrat, sans-serif",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Produtos:
+                      </Typography>
+                      {supplier.products.length > 0 ? (
+                        supplier.products.map((product: any, index: any) => (
+                          <S.ContainerProductsList
+                            onClick={() =>
+                              handleRemoveProduct(supplier.name, index)
+                            }
+                            key={index}
+                          >
+                            <S.TypographyProduct>
+                              {product.description}
+                            </S.TypographyProduct>
+                            <S.ContainerClickRemove>
+                              <DeleteForeverIcon />
+                            </S.ContainerClickRemove>
+                          </S.ContainerProductsList>
+                        ))
+                      ) : (
+                        <S.Alert>
+                          Não existem produtos cadastrados para esse fornecedor.
+                        </S.Alert>
+                      )}
+                    </S.ContainerSupplier>
+                  ))}
+                </>
+              ) : (
+                <S.Paragraph>
+                  Você ainda não tem nenhum fornecedor cadastrado, aproveite e
+                  já adicione no botão acima.
+                </S.Paragraph>
+              )
             ) : (
               <S.Paragraph>
                 Você ainda não tem nenhum fornecedor cadastrado, aproveite e já
@@ -497,6 +638,21 @@ function Home() {
                 error={!!errors.brand}
                 helperText={errors.brand}
               />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <input
+                  id="image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                {selectedImage && (
+                  <CardMedia
+                    component="img"
+                    src={URL.createObjectURL(selectedImage)}
+                    sx={{ mt: 2, maxWidth: 200 }}
+                  />
+                )}
+              </FormControl>
               <div style={{ marginTop: "20px", marginBottom: "20px" }}>
                 <Select
                   sx={{ m: 1, minWidth: 120 }}
