@@ -13,7 +13,7 @@ export const Menu = styled.section`
   border-radius: 0 25px 25px 0;
   position: absolute;
 
-  @media screen and (max-width: 697px) {
+  @media screen and (max-width: 889px) {
     position: relative;
   }
 `;

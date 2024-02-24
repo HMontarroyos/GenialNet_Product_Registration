@@ -46,4 +46,4 @@ export const errorsEmpty = {
 };
 
 export const messageSupplierEmpty =
-  "Você ainda não tem nenhum fornecedor cadastrado, aproveite e já adicione no botão acima.";
+  "Você ainda não tem nenhum fornecedor cadastrado.";
