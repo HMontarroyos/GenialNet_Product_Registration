@@ -4,7 +4,6 @@ export const Menu = styled.section`
   width: 150px;
   height: 100vh;
   background-color: ${(props) => props.theme.colors.primary};
-  position: fixed;
   left: 0;
   display: flex;
   flex-direction: column;
