@@ -53,7 +53,15 @@ function ModalProductsAndSuppliers({
         justifyContent: "center",
       }}
     >
-      <Box sx={{ width: 300, bgcolor: "background.paper", p: 2 }}>
+      <Box
+        sx={{
+          width: 300,
+          bgcolor: "background.paper",
+          p: 2,
+          maxHeight: "90vh",
+          overflowY: "auto",
+        }}
+      >
         <Typography id="modal-title" variant="h6" component="h2">
           {content === "produto"
             ? "Cadastro de Produto"
