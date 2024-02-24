@@ -6,6 +6,8 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   display: flex;
+  margin-left: 30px;
+  margin-right: 30px;
 `;
 
 export const Paragraph = styled.p`
@@ -69,12 +71,6 @@ export const ContainerProductsList = styled.div`
   border-radius: 10px;
   background-color: rgba(0, 126, 188, 0.3);
 `;
-
-
-
-
-
-
 
 export const ContainerClickRemove = styled.div`
   cursor: pointer;

@@ -15,8 +15,6 @@ import {
   CardMedia,
   FormControl,
   Grid,
-  Input,
-  InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -237,6 +235,39 @@ function Home() {
   };
 
   const handleSaveProduct = () => {
+    if (
+      !productData.description ||
+      !productData.brand ||
+      !productData.unitOfMeasurement ||
+      !productData.image ||
+      !productData.supplier
+    ) {
+      toast.error(
+        "Você precisa preencher todos os campos do produto para salvar",
+        {
+          className: "custom-toast-error",
+        }
+      );
+      return;
+    }
+
+    const existingProduct = JSON.parse(
+      localStorage.getItem("products") || "[]"
+    ).find(
+      (product: any) =>
+        product.description === productData.description &&
+        product.supplier === productData.supplier
+    );
+
+    if (existingProduct) {
+      toast.error(
+        "Já existe um Produto igual a esse para esse mesmo fornecedor",
+        {
+          className: "custom-toast-error",
+        }
+      );
+      return;
+    }
     const newProduct = { ...productData };
     const products = JSON.parse(localStorage.getItem("products") || "[]");
 
@@ -265,6 +296,9 @@ function Home() {
       supplier: "",
     });
     setSelectedImage(null);
+    toast.success("Produto criado com sucesso", {
+      className: "custom-toast",
+    });
     handleCloseModal();
   };
 
