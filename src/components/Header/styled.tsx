@@ -13,10 +13,12 @@ export const AnimationGradient = keyframes`
 export const HeaderAnimation = styled.header`
   background-size: 200% 200%;
   animation: ${AnimationGradient} 2s linear infinite alternate;
-  background-image: linear-gradient(-45deg, 
+  background-image: linear-gradient(
+    -45deg,
     ${(props) => props.theme.colors.primary},
     ${(props) => props.theme.colors.secondary},
-    ${(props) => props.theme.colors.tertiary});
+    ${(props) => props.theme.colors.tertiary}
+  );
   width: 100%;
   height: 40px;
 `;
