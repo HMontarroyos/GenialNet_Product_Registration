@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const Menu = styled.section`
   width: 150px;
-  height: 100vh;
+  height: 150px;
   background-color: ${(props) => props.theme.colors.primary};
   left: 0;
   display: flex;
@@ -10,7 +10,12 @@ export const Menu = styled.section`
   align-items: center;
   gap: 20px;
   padding-top: 20px;
-  border-top-right-radius: 25px; 
+  border-radius: 0 25px 25px 0;
+  position: absolute;
+
+  @media screen and (max-width: 697px) {
+    position: relative;
+  }
 `;
 
 export const List = styled.ul`
