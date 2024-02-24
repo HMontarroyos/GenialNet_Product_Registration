@@ -15,6 +15,7 @@ import {
   CardMedia,
   FormControl,
   Grid,
+  InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -688,6 +689,7 @@ function Home() {
                 )}
               </FormControl>
               <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+              <InputLabel id="supplier">Fornecedor</InputLabel>
                 <Select
                   sx={{ m: 1, minWidth: 120 }}
                   size="small"
@@ -709,6 +711,7 @@ function Home() {
                 </Select>
               </div>
               <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+              <InputLabel id="supplier">Unidade de Medida</InputLabel>
                 <Select
                   sx={{ m: 1, minWidth: 120 }}
                   size="small"
