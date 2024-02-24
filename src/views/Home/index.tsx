@@ -9,6 +9,7 @@ import TextField from "@mui/material/TextField";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { getCep } from "../../server/api";
 import { toast } from "react-toastify";
+import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 
 interface Supplier {
   name: string;
@@ -23,6 +24,7 @@ interface Supplier {
 
 interface Product {
   description: string;
+  supplier: string;
   brand: string;
   unitOfMeasurement: string;
   image: string;
@@ -46,13 +48,14 @@ function Home() {
     brand: "",
     unitOfMeasurement: "",
     image: "",
+    supplier: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     cnpj: "",
     cep: "",
     tel: "",
-    price: "",
+    brand: "",
     description: "",
   });
   const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
@@ -209,7 +212,48 @@ function Home() {
     }
   };
 
-  const handleSaveProduct = () => {};
+  const handleInputChangeProduct = (
+    event:
+      | ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
+      | SelectChangeEvent<string>
+  ) => {
+    const { name, value } = event.target;
+    setProductData({
+      ...productData,
+      [name as string]: value as string,
+    });
+  };
+
+  const handleSaveProduct = () => {
+    const newProduct = { ...productData };
+    const products = JSON.parse(localStorage.getItem("products") || "[]");
+
+    if (!newProduct.supplier && suppliersList.length > 0) {
+      newProduct.supplier = suppliersList[1].name;
+    }
+
+    const selectedSupplierIndex = suppliersList.findIndex(
+      (supplier) => supplier.name === newProduct.supplier
+    );
+
+    if (selectedSupplierIndex !== -1) {
+      suppliersList[selectedSupplierIndex].products.push(newProduct);
+      localStorage.setItem("suppliers", JSON.stringify(suppliersList));
+    }
+
+    products.push(newProduct);
+    localStorage.setItem("products", JSON.stringify(products));
+
+    setProductsList([...productsList, newProduct]);
+    setProductData({
+      description: "",
+      brand: "",
+      unitOfMeasurement: "",
+      image: "",
+      supplier: "",
+    });
+    handleCloseModal();
+  };
 
   const validateFields = () => {
     let hasErrors = false;
@@ -218,7 +262,6 @@ function Home() {
       cnpj: "CNPJ",
       cep: "CEP",
       tel: "Telefone",
-      price: "Preço",
       description: "Descrição",
     };
     const newErrors: {
@@ -226,14 +269,14 @@ function Home() {
       cnpj: string;
       cep: string;
       tel: string;
-      price: string;
+      brand: string;
       description: string;
     } = {
       name: "",
       cnpj: "",
       cep: "",
       tel: "",
-      price: "",
+      brand: "",
       description: "",
     };
 
@@ -259,6 +302,25 @@ function Home() {
 
     setErrors(newErrors);
     return hasErrors;
+  };
+
+  const handleRemoveProduct = (supplierName: string, index: number) => {
+    const updatedSuppliersList = [...suppliersList];
+    const supplierIndex = updatedSuppliersList.findIndex(
+      (supplier) => supplier.name === supplierName
+    );
+
+    if (supplierIndex !== -1) {
+      updatedSuppliersList[supplierIndex].products.splice(index, 1);
+      localStorage.setItem("suppliers", JSON.stringify(updatedSuppliersList));
+      const updatedProductsList = JSON.parse(
+        localStorage.getItem("products") || "[]"
+      );
+      updatedProductsList.splice(index, 1);
+      localStorage.setItem("products", JSON.stringify(updatedProductsList));
+
+      setProductsList(updatedProductsList);
+    }
   };
 
   return (
@@ -362,9 +424,14 @@ function Home() {
                     {supplier.products.length > 0 ? (
                       supplier.products.map((product: any, index: any) => (
                         <S.ContainerProductsList
-                          onClick={() => console.log("EXCLUIR")}
+                          onClick={() =>
+                            handleRemoveProduct(supplier.name, index)
+                          }
+                          key={index}
                         >
-                          <S.TypographyProduct>Banana</S.TypographyProduct>
+                          <S.TypographyProduct>
+                            {product.description}
+                          </S.TypographyProduct>
                           <S.ContainerClickRemove>
                             <DeleteForeverIcon />
                           </S.ContainerClickRemove>
@@ -372,8 +439,7 @@ function Home() {
                       ))
                     ) : (
                       <S.Alert>
-                        Não existe produtos cadastrado para esse fornecedor,
-                        caso deseje cadastre na página de produtos
+                        Não existem produtos cadastrados para esse fornecedor.
                       </S.Alert>
                     )}
                   </S.ContainerSupplier>
@@ -413,12 +479,61 @@ function Home() {
                 label="Nome do Produto"
                 variant="outlined"
                 value={productData.description}
-                onChange={handleInputChange}
+                onChange={handleInputChangeProduct}
                 fullWidth
                 sx={{ mt: 2 }}
                 error={!!errors.description}
                 helperText={errors.description}
               />
+              <TextField
+                id="brand"
+                name="brand"
+                label="Marca"
+                variant="outlined"
+                value={productData.brand}
+                onChange={handleInputChangeProduct}
+                fullWidth
+                sx={{ mt: 2 }}
+                error={!!errors.brand}
+                helperText={errors.brand}
+              />
+              <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+                <Select
+                  sx={{ m: 1, minWidth: 120 }}
+                  size="small"
+                  labelId="supplier"
+                  id="supplier"
+                  name="supplier"
+                  value={productData.supplier}
+                  label="Fornecedor"
+                  onChange={handleInputChangeProduct}
+                >
+                  {localStorage.getItem("suppliers") &&
+                    JSON.parse(localStorage.getItem("suppliers") || "[]").map(
+                      (supplier: any, index: any) => (
+                        <MenuItem key={index} value={supplier.name}>
+                          {supplier.name}
+                        </MenuItem>
+                      )
+                    )}
+                </Select>
+              </div>
+              <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+                <Select
+                  sx={{ m: 1, minWidth: 120 }}
+                  size="small"
+                  labelId="unitOfMeasurement"
+                  id="unitOfMeasurement"
+                  name="unitOfMeasurement"
+                  value={productData.unitOfMeasurement}
+                  label="Unidade de Medida"
+                  onChange={handleInputChangeProduct}
+                >
+                  <MenuItem value={"Un (unidade)"}>Un (unidade)</MenuItem>
+                  <MenuItem value={"kg (quilograma)"}>kg (quilograma)</MenuItem>
+                  <MenuItem value={"m (metro)"}>m (metro)</MenuItem>
+                </Select>
+              </div>
 
               <Button onClick={handleSaveProduct} text={"Salvar Produto"} />
             </>
