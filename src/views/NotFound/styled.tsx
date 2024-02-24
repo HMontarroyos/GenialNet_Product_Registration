@@ -29,6 +29,10 @@ export const Title = styled.h1`
   margin-bottom: 20px;
   color: ${(props) => props.theme.colors.tertiary};
   font-family: ${(props) => props.theme.fonts.title};
+
+  @media screen and (max-width: 556px) {
+    font-size: 110px;
+  }
 `;
 
 export const Paragraph = styled.p`
@@ -37,6 +41,8 @@ export const Paragraph = styled.p`
   color: ${(props) => props.theme.colors.disabled};
   line-height: 1.66em;
   font-family: ${(props) => props.theme.fonts.text};
+  margin-left: 20px;
+  margin-right: 20px;
 `;
 
 export const LinkRedirect = styled(Link)`
