@@ -44,7 +44,7 @@ export const Title = styled.h1`
 export const ContainerSupplier = styled.div`
   margin: 20px;
   border: 2px solid ${(props) => props.theme.colors.secondary};
-  padding: 50px;
+  padding: 30px;
   border-radius: 20px;
 `;
 
