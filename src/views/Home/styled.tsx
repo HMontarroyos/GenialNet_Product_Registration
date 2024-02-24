@@ -18,7 +18,7 @@ export const Paragraph = styled.p`
   font-size: 25px;
   line-height: 20px;
   font-weight: 400;
-  letter-spacing: 0px;
+  letter-spacing: 0.5px;
 `;
 
 export const Alert = styled.p`
