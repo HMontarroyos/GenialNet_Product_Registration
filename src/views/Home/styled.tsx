@@ -14,7 +14,7 @@ export const Paragraph = styled.p`
   margin-top: 80px;
   font-family: ${(props) => props.theme.fonts.text};
   color: ${(props) => props.theme.colors.primary};
-  white-space: nowrap;
+  white-space: wrap;
   font-size: 25px;
   line-height: 20px;
   font-weight: 400;
