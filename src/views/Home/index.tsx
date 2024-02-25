@@ -189,13 +189,25 @@ function Home() {
 
     const newProduct = { ...productData };
 
-    const selectedSupplierIndex = suppliersList.findIndex(
+    const supplier = suppliersList.find(
       (supplier) => supplier.name === newProduct.supplier
     );
 
-    if (selectedSupplierIndex !== -1) {
-      suppliersList[selectedSupplierIndex].products.push(newProduct);
-      localStorage.setItem("suppliers", JSON.stringify(suppliersList));
+    if (supplier) {
+      const updatedSupplier = {
+        ...supplier,
+        products: [...supplier.products, newProduct],
+      };
+      const updatedSuppliersList = suppliersList.map((item) =>
+        item.name === updatedSupplier.name ? updatedSupplier : item
+      );
+      localStorage.setItem("suppliers", JSON.stringify(updatedSuppliersList));
+      setSuppliersList(updatedSuppliersList);
+    } else {
+      toast.error("Fornecedor não encontrado", {
+        className: "custom-toast-error",
+      });
+      return;
     }
 
     const updatedProductsList = [...productsList, newProduct];
