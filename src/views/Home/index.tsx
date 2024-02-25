@@ -171,10 +171,8 @@ function Home() {
       return;
     }
 
-    const existingProduct = JSON.parse(
-      localStorage.getItem("products") || "[]"
-    ).find(
-      (product: any) =>
+    const existingProduct = productsList.find(
+      (product) =>
         product.description === productData.description &&
         product.supplier === productData.supplier
     );
@@ -188,12 +186,8 @@ function Home() {
       );
       return;
     }
-    const newProduct = { ...productData };
-    const products = JSON.parse(localStorage.getItem("products") || "[]");
 
-    if (!newProduct.supplier && suppliersList.length > 0) {
-      newProduct.supplier = suppliersList[1].name;
-    }
+    const newProduct = { ...productData };
 
     const selectedSupplierIndex = suppliersList.findIndex(
       (supplier) => supplier.name === newProduct.supplier
@@ -204,10 +198,10 @@ function Home() {
       localStorage.setItem("suppliers", JSON.stringify(suppliersList));
     }
 
-    products.push(newProduct);
-    localStorage.setItem("products", JSON.stringify(products));
+    const updatedProductsList = [...productsList, newProduct];
+    localStorage.setItem("products", JSON.stringify(updatedProductsList));
 
-    setProductsList([...productsList, newProduct]);
+    setProductsList(updatedProductsList);
     setProductData(productDataEmpty);
     setSelectedImage(null);
     toast.success("Produto criado com sucesso", {
