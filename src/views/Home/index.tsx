@@ -174,13 +174,12 @@ function Home() {
 
       const existingProduct = productsList.find(
         (product) =>
-          product.description === productData.description &&
-          product.supplier === productData.supplier
+          product.description === productData.description 
       );
 
       if (existingProduct) {
         toast.error(
-          "Já existe um Produto igual a esse para esse mesmo fornecedor",
+          "Já existe esse Produto em algum fornecedor",
           {
             className: "custom-toast-error",
           }
