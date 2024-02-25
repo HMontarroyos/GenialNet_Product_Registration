@@ -155,71 +155,80 @@ function Home() {
   };
 
   const handleSaveProduct = () => {
-    if (
-      !productData.description ||
-      !productData.brand ||
-      !productData.unitOfMeasurement ||
-      !productData.image ||
-      !productData.supplier
-    ) {
-      toast.error(
-        "Você precisa preencher todos os campos do produto para salvar",
-        {
+    try {
+      if (
+        !productData.description ||
+        !productData.brand ||
+        !productData.unitOfMeasurement ||
+        !productData.image ||
+        !productData.supplier
+      ) {
+        toast.error(
+          "Você precisa preencher todos os campos do produto para salvar",
+          {
+            className: "custom-toast-error",
+          }
+        );
+        return;
+      }
+
+      const existingProduct = productsList.find(
+        (product) =>
+          product.description === productData.description &&
+          product.supplier === productData.supplier
+      );
+
+      if (existingProduct) {
+        toast.error(
+          "Já existe um Produto igual a esse para esse mesmo fornecedor",
+          {
+            className: "custom-toast-error",
+          }
+        );
+        return;
+      }
+
+      const newProduct = { ...productData };
+      const supplier = suppliersList.find(
+        (supplier) => supplier.name === newProduct.supplier
+      );
+
+      if (supplier) {
+        const updatedSupplier = {
+          ...supplier,
+          products: [...supplier.products, newProduct],
+        };
+        const updatedSuppliersList = suppliersList.map((item) =>
+          item.name === updatedSupplier.name ? updatedSupplier : item
+        );
+        localStorage.setItem("suppliers", JSON.stringify(updatedSuppliersList));
+        setSuppliersList(updatedSuppliersList);
+      } else {
+        toast.error("Fornecedor não encontrado", {
           className: "custom-toast-error",
-        }
-      );
-      return;
-    }
+        });
+        return;
+      }
 
-    const existingProduct = productsList.find(
-      (product) =>
-        product.description === productData.description &&
-        product.supplier === productData.supplier
-    );
+      const updatedProductsList = [...productsList, newProduct];
+      localStorage.setItem("products", JSON.stringify(updatedProductsList));
 
-    if (existingProduct) {
-      toast.error(
-        "Já existe um Produto igual a esse para esse mesmo fornecedor",
-        {
-          className: "custom-toast-error",
-        }
-      );
-      return;
-    }
-
-    const newProduct = { ...productData };
-
-    const supplier = suppliersList.find(
-      (supplier) => supplier.name === newProduct.supplier
-    );
-
-    if (supplier) {
-      const updatedSupplier = {
-        ...supplier,
-        products: [...supplier.products, newProduct],
-      };
-      const updatedSuppliersList = suppliersList.map((item) =>
-        item.name === updatedSupplier.name ? updatedSupplier : item
-      );
-      localStorage.setItem("suppliers", JSON.stringify(updatedSuppliersList));
-      setSuppliersList(updatedSuppliersList);
-    } else {
-      toast.error("Fornecedor não encontrado", {
-        className: "custom-toast-error",
+      setProductsList(updatedProductsList);
+      setProductData(productDataEmpty);
+      setSelectedImage(null);
+      toast.success("Produto criado com sucesso", {
+        className: "custom-toast",
       });
-      return;
+      handleCloseModal();
+    } catch (error) {
+      toast.error(
+        "Ocorreu um erro ao salvar o produto, possivelmente o storage está cheio, exclua algum produto para liberar espaço no bd",
+        {
+          className: "custom-toast-error",
+        }
+      );
+      console.error("Erro ao salvar o produto,", error);
     }
-
-    const updatedProductsList = [...productsList, newProduct];
-    localStorage.setItem("products", JSON.stringify(updatedProductsList));
-
-    setProductsList(updatedProductsList);
-    setProductData(productDataEmpty);
-    setSelectedImage(null);
-    toast.success("Produto criado com sucesso", {
-      className: "custom-toast",
-    });
-    handleCloseModal();
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
