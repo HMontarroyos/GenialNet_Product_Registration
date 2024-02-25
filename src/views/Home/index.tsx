@@ -173,17 +173,13 @@ function Home() {
       }
 
       const existingProduct = productsList.find(
-        (product) =>
-          product.description === productData.description 
+        (product) => product.description === productData.description
       );
 
       if (existingProduct) {
-        toast.error(
-          "Já existe esse Produto em algum fornecedor",
-          {
-            className: "custom-toast-error",
-          }
-        );
+        toast.error("Já existe esse Produto em algum fornecedor", {
+          className: "custom-toast-error",
+        });
         return;
       }
 
@@ -293,20 +289,33 @@ function Home() {
     const supplierIndex = updatedSuppliersList.findIndex(
       (supplier) => supplier.name === supplierName
     );
-  
+
     if (supplierIndex !== -1) {
+      const productToRemove =
+        updatedSuppliersList[supplierIndex].products[index];
       updatedSuppliersList[supplierIndex].products.splice(index, 1);
       localStorage.setItem("suppliers", JSON.stringify(updatedSuppliersList));
-  
-      const updatedProductsList = productsList.filter(
-        (product) => product.supplier !== supplierName || productsList.indexOf(product) !== index
+
+      const productExistsInOtherSuppliers = updatedSuppliersList.some(
+        (supplier) =>
+          supplier.name !== supplierName &&
+          supplier.products.some(
+            (product: { description: any }) =>
+              product.description === productToRemove.description
+          )
       );
-      localStorage.setItem("products", JSON.stringify(updatedProductsList));
-  
-      setProductsList(updatedProductsList);
+
+      if (!productExistsInOtherSuppliers) {
+        const updatedProductsList = productsList.filter(
+          (product) =>
+            product.supplier !== supplierName ||
+            product.description !== productToRemove.description
+        );
+        localStorage.setItem("products", JSON.stringify(updatedProductsList));
+        setProductsList(updatedProductsList);
+      }
     }
   };
-  
 
   const InfoItem = ({ label, value }: { label: string; value: string }) => (
     <S.ContainerTypography>
