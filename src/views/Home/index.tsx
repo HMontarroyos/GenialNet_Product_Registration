@@ -293,19 +293,20 @@ function Home() {
     const supplierIndex = updatedSuppliersList.findIndex(
       (supplier) => supplier.name === supplierName
     );
-
+  
     if (supplierIndex !== -1) {
       updatedSuppliersList[supplierIndex].products.splice(index, 1);
       localStorage.setItem("suppliers", JSON.stringify(updatedSuppliersList));
-      const updatedProductsList = JSON.parse(
-        localStorage.getItem("products") || "[]"
+  
+      const updatedProductsList = productsList.filter(
+        (product) => product.supplier !== supplierName || productsList.indexOf(product) !== index
       );
-      updatedProductsList.splice(index, 1);
       localStorage.setItem("products", JSON.stringify(updatedProductsList));
-
+  
       setProductsList(updatedProductsList);
     }
   };
+  
 
   const InfoItem = ({ label, value }: { label: string; value: string }) => (
     <S.ContainerTypography>
